@@ -1,7 +1,8 @@
-package org.example.service;
+package org.example.service.implementation;
 
 import org.example.entity.Producto;
 import org.example.repository.ProductoRepository;
+import org.example.service.interfaces.ProductoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;

@@ -1,4 +1,4 @@
-package org.example.service;
+package org.example.service.interfaces;
 
 import org.example.entity.Producto;
 import java.util.List;

@@ -1,4 +1,4 @@
-package org.example.service;
+package org.example.service.implementation;
 
 import org.example.entity.Carrito;
 import org.example.entity.ItemCarrito;
@@ -6,6 +6,7 @@ import org.example.entity.Producto;
 import org.example.repository.CarritoRepository;
 import org.example.repository.ItemCarritoRepository;
 import org.example.repository.ProductoRepository;
+import org.example.service.interfaces.CarritoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
