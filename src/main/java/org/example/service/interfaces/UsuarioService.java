@@ -1,10 +1,20 @@
-package org.example.service.interfaces; // 🚀 ¡IMPORTANTE!: Agregar el .interfaces aquí
+package org.example.service.interfaces;
 
-import org.example.dto.LoginRequest;
 import org.example.dto.UsuarioRegistroDTO;
-import org.example.dto.UsuarioRespuestaDTO;
+import org.example.entity.Usuario; // Asegúrate de que apunte a tu paquete de entidades
+import java.util.List;
 
 public interface UsuarioService {
-    UsuarioRespuestaDTO registrar(UsuarioRegistroDTO registroDTO);
-    UsuarioRespuestaDTO login(LoginRequest loginRequest);
+
+    Usuario registrarUsuario(UsuarioRegistroDTO dto);
+
+    Usuario obtenerPorId(Long id);
+
+    Usuario obtenerPorEmail(String email);
+
+    List<Usuario> listarTodos();
+
+    Usuario actualizar(Long id, UsuarioRegistroDTO dto);
+
+    void eliminar(Long id);
 }

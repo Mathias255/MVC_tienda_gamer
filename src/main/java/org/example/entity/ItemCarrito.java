@@ -16,14 +16,20 @@ public class ItemCarrito {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "carrito_id", nullable = false)
-    private Carrito carrito;
+    @Column(nullable = false)
+    private Integer cantidad;
 
     @ManyToOne
     @JoinColumn(name = "producto_id", nullable = false)
     private Producto producto;
 
-    @Column(nullable = false)
-    private Integer cantidad;
+    // 🚀 RELACIÓN 1: Con el Carrito activo (Resuelve el error en CarritoServiceImpl)
+    @ManyToOne
+    @JoinColumn(name = "carrito_id")
+    private Carrito carrito;
+
+    // 🚀 RELACIÓN 2: Con el Pedido final (Resuelve el error de Hibernate anterior)
+    @ManyToOne
+    @JoinColumn(name = "pedido_id")
+    private Pedido pedido;
 }

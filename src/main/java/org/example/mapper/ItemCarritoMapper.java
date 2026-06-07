@@ -14,18 +14,17 @@ public class ItemCarritoMapper {
         }
 
         ItemCarritoDTO dto = new ItemCarritoDTO();
+        dto.setId(item.getId()); // Inyectamos el ID propio del registro
         dto.setCantidad(item.getCantidad());
 
         if (item.getProducto() != null) {
             dto.setProductoId(item.getProducto().getId());
             dto.setNombreProducto(item.getProducto().getNombre());
 
-            // Si el precio viene de Producto como Double, lo convertimos a BigDecimal
             if (item.getProducto().getPrecio() != null) {
                 BigDecimal precioUnitario = BigDecimal.valueOf(item.getProducto().getPrecio());
                 dto.setPrecioUnitario(precioUnitario);
 
-                // Calculamos el subtotal dinámicamente (Cantidad * Precio)
                 if (item.getCantidad() != null) {
                     dto.setSubtotal(precioUnitario.multiply(BigDecimal.valueOf(item.getCantidad())));
                 }
@@ -33,5 +32,18 @@ public class ItemCarritoMapper {
         }
 
         return dto;
+    }
+
+    public ItemCarrito toEntity(ItemCarritoDTO dto) {
+        if (dto == null) {
+            return null;
+        }
+
+        ItemCarrito item = new ItemCarrito();
+        item.setId(dto.getId());
+        item.setCantidad(dto.getCantidad());
+        // El amarre de las relaciones complejas (Producto y Carrito) lo maneja el Service
+
+        return item;
     }
 }

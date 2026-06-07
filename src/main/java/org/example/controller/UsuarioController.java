@@ -1,13 +1,14 @@
 package org.example.controller;
 
-import org.example.dto.LoginRequest;
 import org.example.dto.UsuarioRegistroDTO;
 import org.example.dto.UsuarioRespuestaDTO;
-import org.example.service.interfaces.UsuarioService; // 🚀 CORREGIDO: Importa desde .interfaces
+import org.example.entity.Usuario;
+import org.example.service.interfaces.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/usuarios")
@@ -17,38 +18,54 @@ public class UsuarioController {
     private UsuarioService usuarioService;
 
     @PostMapping
-    public ResponseEntity<?> registrarUsuario(@RequestBody UsuarioRegistroDTO registroDTO) {
-        System.out.println("\n=== 🚀 INTENTO DE REGISTRO EN CONTROLADOR ===");
-        if (registroDTO == null) {
-            return ResponseEntity.badRequest().body("El cuerpo no puede estar vacío.");
-        }
-        try {
-            UsuarioRespuestaDTO guardado = usuarioService.registrar(registroDTO);
-            return ResponseEntity.status(HttpStatus.CREATED).body(guardado);
-        } catch (Exception e) {
-            System.err.println("❌ ERROR EN CONTROLADOR AL REGISTRAR:");
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error interno en el backend: " + e.getMessage());
-        }
+    public ResponseEntity<UsuarioRespuestaDTO> crearUsuario(@RequestBody UsuarioRegistroDTO dto) {
+        Usuario usuario = usuarioService.registrarUsuario(dto);
+        return ResponseEntity.ok(mappearADto(usuario));
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
-        System.out.println("\n=== 🔑 INTENTO DE LOGIN EN CONTROLADOR ===");
-        if (loginRequest == null) {
-            return ResponseEntity.badRequest().body("Credenciales vacías.");
+    @GetMapping("/{id}")
+    public ResponseEntity<UsuarioRespuestaDTO> obtenerPorId(@PathVariable Long id) {
+        Usuario usuario = usuarioService.obtenerPorId(id);
+        if (usuario == null) {
+            return ResponseEntity.notFound().build();
         }
-        try {
-            UsuarioRespuestaDTO respuesta = usuarioService.login(loginRequest);
-            if (respuesta != null) {
-                return ResponseEntity.ok(respuesta);
-            }
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Email o contraseña incorrectos.");
-        } catch (Exception e) {
-            System.err.println("❌ ERROR EN CONTROLADOR AL HACER LOGIN:");
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error en el login.");
+        return ResponseEntity.ok(mappearADto(usuario));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<UsuarioRespuestaDTO>> listarTodos() {
+        List<Usuario> usuarios = usuarioService.listarTodos();
+
+        // Convertimos la lista de entidades a lista de DTOs
+        List<UsuarioRespuestaDTO> respuesta = usuarios.stream()
+                .map(this::mappearADto)
+                .toList(); // Si usas Java 16 o superior. Si usas Java 11 cambia a .collect(Collectors.toList())
+
+        return ResponseEntity.ok(respuesta);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<UsuarioRespuestaDTO> actualizar(@PathVariable Long id, @RequestBody UsuarioRegistroDTO dto) {
+        Usuario usuarioActualizado = usuarioService.actualizar(id, dto);
+        if (usuarioActualizado == null) {
+            return ResponseEntity.notFound().build();
         }
+        return ResponseEntity.ok(mappearADto(usuarioActualizado));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+        usuarioService.eliminar(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    // Método auxiliar de mapeo
+    private UsuarioRespuestaDTO mappearADto(Usuario usuario) {
+        if (usuario == null) return null;
+        UsuarioRespuestaDTO dto = new UsuarioRespuestaDTO();
+        dto.setId(usuario.getId());
+        dto.setNombre(usuario.getNombre());
+        dto.setEmail(usuario.getEmail());
+        return dto;
     }
 }

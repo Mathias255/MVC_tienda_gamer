@@ -2,9 +2,10 @@ package org.example.repository;
 
 import org.example.entity.Producto;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 import java.util.List;
 
+@Repository
 public interface ProductoRepository extends JpaRepository<Producto, Long> {
-    // 👇 ESTO LE PERMITE AL SERVICIO USAR EL FILTRO DE CATEGORÍAS:
     List<Producto> findByCategoriaId(Long categoriaId);
 }

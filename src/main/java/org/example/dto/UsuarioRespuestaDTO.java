@@ -5,11 +5,12 @@ public class UsuarioRespuestaDTO {
     private String nombre;
     private String email;
     private String rol;
+    private String token; // 🚀 SOLUCIÓN AL ERROR EN AUTHCONTROLLER
 
-    // 🚀 Constructor vacío para Jackson
     public UsuarioRespuestaDTO() {
     }
 
+    // Getters y Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -21,4 +22,7 @@ public class UsuarioRespuestaDTO {
 
     public String getRol() { return rol; }
     public void setRol(String rol) { this.rol = rol; }
+
+    public String getToken() { return token; }
+    public void setToken(String token) { this.token = token; }
 }

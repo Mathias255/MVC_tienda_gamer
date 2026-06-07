@@ -1,56 +1,22 @@
 package org.example.mapper;
 
 import org.example.dto.ProductoDTO;
+import org.example.dto.soap.ProductoSoapDTO;
 import org.example.entity.Producto;
-import org.springframework.stereotype.Component;
-import java.math.BigDecimal;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.ReportingPolicy;
 
-@Component
-public class ProductoMapper {
+// 🚀 unmappedTargetPolicy = ReportingPolicy.IGNORE hace que MapStruct ignore
+// automáticamente cualquier campo que falte en los DTOs (como imagenUrl o categoriaId)
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
+public interface ProductoMapper {
 
-    public ProductoDTO toDTO(Producto producto) {
-        if (producto == null) {
-            return null;
-        }
+    // --- MAPEO PARA REST (ProductoDTO) ---
+    ProductoDTO toDTO(Producto producto);
+    Producto toEntity(ProductoDTO dto);
 
-        ProductoDTO dto = new ProductoDTO();
-        dto.setId(producto.getId());
-        dto.setNombre(producto.getNombre());
-        dto.setDescripcion(producto.getDescripcion());
-
-        // Corrección del tipo de dato del precio
-        if (producto.getPrecio() != null) {
-            dto.setPrecio(BigDecimal.valueOf(producto.getPrecio()));
-        }
-
-        dto.setStock(producto.getStock());
-        dto.setImagenUrl(producto.getImagenUrl());
-
-        if (producto.getCategoria() != null) {
-            dto.setCategoriaId(producto.getCategoria().getId());
-        }
-
-        return dto;
-    }
-
-    public Producto toEntity(ProductoDTO dto) {
-        if (dto == null) {
-            return null;
-        }
-
-        Producto producto = new Producto();
-        producto.setId(dto.getId());
-        producto.setNombre(dto.getNombre());
-        producto.setDescripcion(dto.getDescripcion());
-
-        // Corrección al mapear de regreso a Entity (de BigDecimal a Double)
-        if (dto.getPrecio() != null) {
-            producto.setPrecio(dto.getPrecio().doubleValue());
-        }
-
-        producto.setStock(dto.getStock());
-        producto.setImagenUrl(dto.getImagenUrl());
-
-        return producto;
-    }
+    // --- MAPEO PARA SOAP (ProductoSoapDTO) ---
+    ProductoSoapDTO entityToSoapDto(Producto producto);
+    Producto soapDtoToEntity(ProductoSoapDTO soapDto);
 }

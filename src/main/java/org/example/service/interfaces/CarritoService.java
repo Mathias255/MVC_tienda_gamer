@@ -1,12 +1,9 @@
 package org.example.service.interfaces;
 
-import org.example.entity.ItemCarrito;
-import java.util.List;
+import org.example.dto.PedidoDTO;
 
 public interface CarritoService {
-    List<ItemCarrito> obtenerItems(Long carritoId);
-    ItemCarrito agregarProducto(Long carritoId, Long productoId, Integer cantidad);
-    ItemCarrito actualizarCantidad(Long itemId, Integer cantidad);
-    void eliminarItem(Long itemId);
-    void vaciarCarrito(Long carritoId);
+    // Este método buscará el carrito del usuario, validará stock,
+    // restará las cantidades, creará el Pedido/Detalle y vaciará el carrito.
+    PedidoDTO finalizarCompra(String username);
 }

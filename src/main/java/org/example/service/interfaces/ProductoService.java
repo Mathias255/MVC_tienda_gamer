@@ -1,16 +1,25 @@
 package org.example.service.interfaces;
 
-import org.example.entity.Producto;
+import org.example.dto.ProductoDTO;
 import java.util.List;
 
-public interface ProductoService {
-    List<Producto> obtenerTodos();
-    Producto obtenerPorId(Long id);
-    Producto guardar(Producto producto);
+/**
+ * Interfaz de servicio para la gestión del catálogo gamer.
+ * Extiende de BaseProductos para heredar operaciones fundamentales.
+ *
+ * @author Mathias
+ * @version 1.0
+ */
+public interface ProductoService extends BaseProductos {
 
-    // 👇 Nombres corregidos para que coincidan con el controlador:
-    List<Producto> obtenerPorCategoria(Long categoriaId);
-    Producto actualizar(Long id, Producto producto);
+    List<ProductoDTO> obtenerTodos();
+
+    ProductoDTO obtenerPorId(Long id);
+
+    ProductoDTO guardar(ProductoDTO productoDto);
+
+    // 🔥 Agregamos los métodos que te pide el ProductoController:
+    ProductoDTO actualizar(Long id, ProductoDTO productoDto);
 
     void eliminar(Long id);
 }

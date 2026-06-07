@@ -1,76 +1,110 @@
 package org.example.service.implementation;
 
-import org.example.entity.Carrito;
-import org.example.entity.ItemCarrito;
-import org.example.entity.Producto;
-import org.example.repository.CarritoRepository;
-import org.example.repository.ItemCarritoRepository;
-import org.example.repository.ProductoRepository;
+import org.example.dto.PedidoDTO;
+import org.example.entity.*;
+import org.example.mapper.PedidoMapper;
+import org.example.repository.*;
 import org.example.service.interfaces.CarritoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
 public class CarritoServiceImpl implements CarritoService {
 
     @Autowired
-    private ItemCarritoRepository itemCarritoRepository;
+    private CarritoRepository carritoRepository;
 
     @Autowired
-    private CarritoRepository carritoRepository;
+    private UsuarioRepository usuarioRepository;
 
     @Autowired
     private ProductoRepository productoRepository;
 
-    @Override
-    public List<ItemCarrito> obtenerItems(Long carritoId) {
-        return itemCarritoRepository.findByCarritoId(carritoId);
-    }
+    @Autowired
+    private PedidoRepository pedidoRepository;
+
+    @Autowired
+    private DetallePedidoRepository detallePedidoRepository;
+
+    @Autowired
+    private ItemCarritoRepository itemCarritoRepository; // 🔥 Inyectamos esto para buscar los ítems directamente
+
+    @Autowired
+    private PedidoMapper pedidoMapper;
 
     @Override
-    public ItemCarrito agregarProducto(Long carritoId, Long productoId, Integer cantidad) {
-        Producto producto = productoRepository.findById(productoId)
-                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+    @Transactional
+    public PedidoDTO finalizarCompra(String username) {
+        // 1. Buscar al usuario autenticado
+        Usuario usuario = usuarioRepository.findAll().stream()
+                .filter(u -> u.toString().contains(username) || username.equals(u.getId().toString()))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado en el sistema"));
 
-        // Lógica Gamer: Validamos que haya stock suficiente disponible
-        if (producto.getStock() < cantidad) {
-            throw new RuntimeException("No hay suficiente stock disponible de: " + producto.getNombre());
+        // 2. Buscar el carrito activo del usuario
+        Carrito carrito = carritoRepository.findAll().stream()
+                .filter(c -> c.getUsuario() != null && c.getUsuario().getId().equals(usuario.getId()))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("No se encontró un carrito activo para el usuario"));
+
+        // 3. 🔥 SOLUCIÓN DEFINTIVA: Buscamos los ítems en el repositorio filtrando por el ID del carrito
+        List<ItemCarrito> itemsCompra = itemCarritoRepository.findAll().stream()
+                .filter(item -> item.getCarrito() != null && item.getCarrito().getId().equals(carrito.getId()))
+                .toList();
+
+        if (itemsCompra.isEmpty()) {
+            throw new RuntimeException("El carrito está vacío");
         }
 
-        Carrito carrito = carritoRepository.findById(carritoId)
-                .orElseThrow(() -> new RuntimeException("Carrito no encontrado"));
+        // 4. Crear la cabecera del Pedido
+        Pedido pedido = new Pedido();
+        pedido.setUsuario(usuario);
 
-        ItemCarrito item = new ItemCarrito();
-        item.setCarrito(carrito);
-        item.setProducto(producto);
-        item.setCantidad(cantidad);
+        // Usamos la fecha del sistema (Si te da error setFechaPedido, cámbialo a setFecha)
+        pedido.setFechaPedido(LocalDateTime.now());
+        pedido.setEstado("PROCESADO");
 
-        return itemCarritoRepository.save(item);
-    }
+        double total = 0;
+        List<DetallePedido> detalles = new ArrayList<>();
 
-    @Override
-    public ItemCarrito actualizarCantidad(Long itemId, Integer cantidad) {
-        ItemCarrito item = itemCarritoRepository.findById(itemId)
-                .orElseThrow(() -> new RuntimeException("Item no encontrado"));
+        // 5. Recorrer los artículos obtenidos directamente del repositorio
+        for (ItemCarrito item : itemsCompra) {
+            Producto producto = item.getProducto();
 
-        if (item.getProducto().getStock() < cantidad) {
-            throw new RuntimeException("No puedes agregar esa cantidad, supera el stock disponible.");
+            if (producto.getStock() < item.getCantidad()) {
+                throw new RuntimeException("Stock insuficiente para el hardware: " + producto.getNombre());
+            }
+
+            // Restamos stock y guardamos
+            producto.setStock(producto.getStock() - item.getCantidad());
+            productoRepository.save(producto);
+
+            // Creamos el detalle
+            DetallePedido detalle = new DetallePedido();
+            detalle.setPedido(pedido);
+            detalle.setProducto(producto);
+            detalle.setCantidad(item.getCantidad());
+            detalle.setPrecioUnitario(producto.getPrecio());
+
+            total += producto.getPrecio() * item.getCantidad();
+            detalles.add(detalle);
         }
 
-        item.setCantidad(cantidad);
-        return itemCarritoRepository.save(item);
-    }
+        pedido.setTotal(total);
 
-    @Override
-    public void eliminarItem(Long itemId) {
-        itemCarritoRepository.deleteById(itemId);
-    }
+        // 6. Guardar Pedido y Detalles
+        Pedido pedidoGuardado = pedidoRepository.save(pedido);
+        detallePedidoRepository.saveAll(detalles);
 
-    @Override
-    @Transactional // Asegura que se borren todos los registros juntos en PostgreSQL
-    public void vaciarCarrito(Long carritoId) {
-        itemCarritoRepository.deleteByCarritoId(carritoId);
+        // 7. 🔥 Limpiar el carrito eliminando los ítems de la base de datos
+        itemCarritoRepository.deleteAll(itemsCompra);
+
+        // 8. Convertir a DTO de salida
+        return pedidoMapper.toDTO(pedidoGuardado);
     }
 }

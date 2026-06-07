@@ -14,10 +14,10 @@ public class UsuarioMapper {
         }
         Usuario usuario = new Usuario();
         usuario.setNombre(dto.getNombre());
+        usuario.setApellido(dto.getApellido()); // Mantenemos tu corrección del apellido
         usuario.setEmail(dto.getEmail());
         usuario.setPassword(dto.getPassword());
 
-        // 🚀 NORMALIZACIÓN: Convierte el rol de Angular de forma segura
         if (dto.getRol() != null) {
             if (dto.getRol().equalsIgnoreCase("CLIENTE")) {
                 usuario.setRol("Cliente");

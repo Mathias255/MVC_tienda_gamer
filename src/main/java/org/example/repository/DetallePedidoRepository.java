@@ -7,6 +7,5 @@ import java.util.List;
 
 @Repository
 public interface DetallePedidoRepository extends JpaRepository<DetallePedido, Long> {
-    // Obtiene todos los productos que componen a un pedido específico
     List<DetallePedido> findByPedidoId(Long pedidoId);
 }

@@ -1,8 +1,9 @@
 package org.example.controller;
 
-import org.example.dto.LoginRequest;
+import org.example.dto.UsuarioRegistroDTO;
+import org.example.dto.UsuarioRespuestaDTO;
 import org.example.entity.Usuario;
-import org.example.repository.UsuarioRepository;
+import org.example.service.interfaces.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,18 +13,26 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     @Autowired
-    private UsuarioRepository usuarioRepository;
+    private UsuarioService usuarioService;
 
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
-        return usuarioRepository.findByEmail(request.getEmail())
-                .map(usuario -> {
-                    // VALIDACIÓN SIMPLE: En producción usa BCrypt para comparar contraseñas
-                    if (usuario.getPassword().equals(request.getPassword())) {
-                        return ResponseEntity.ok(usuario); // Enviamos el usuario completo incluyendo el ROL
-                    }
-                    return ResponseEntity.status(401).body("Contraseña incorrecta");
-                })
-                .orElse(ResponseEntity.status(404).body("Usuario no encontrado"));
+    @PostMapping("/registrar")
+    public ResponseEntity<UsuarioRespuestaDTO> registrar(@RequestBody UsuarioRegistroDTO dto) {
+        // Guardamos usando el servicio en español
+        Usuario usuarioGuardado = usuarioService.registrarUsuario(dto);
+
+        // Convertimos la Entidad a DTO de respuesta para solucionar el tipo incompatible
+        UsuarioRespuestaDTO respuesta = mappearADto(usuarioGuardado);
+
+        return ResponseEntity.ok(respuesta);
+    }
+
+    // Método auxiliar para no repetir código de mapeo
+    private UsuarioRespuestaDTO mappearADto(Usuario usuario) {
+        if (usuario == null) return null;
+        UsuarioRespuestaDTO dto = new UsuarioRespuestaDTO();
+        dto.setId(usuario.getId());
+        dto.setNombre(usuario.getNombre());
+        dto.setEmail(usuario.getEmail());
+        return dto;
     }
 }

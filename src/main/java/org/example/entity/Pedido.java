@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "pedidos")
@@ -33,6 +34,11 @@ public class Pedido {
     @ManyToOne
     @JoinColumn(name = "metodo_pago_id", nullable = false)
     private MetodoPago metodoPago;
+
+    // 🚀 LA PIEZA FALTANTE: Relación con los ítems del carrito/detalles
+    // "pedido" debe ser el nombre del atributo Pedido dentro de tu clase ItemCarrito
+    @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<ItemCarrito> items;
 
     @PrePersist
     protected void onCreate() {

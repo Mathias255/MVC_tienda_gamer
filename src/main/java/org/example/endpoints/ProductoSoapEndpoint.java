@@ -1,46 +1,82 @@
 package org.example.endpoints;
 
-import org.example.dto.soap.GetProductoRequest;
-import org.example.dto.soap.GetProductoResponse;
+import jakarta.jws.WebMethod;
+import jakarta.jws.WebParam;
+import jakarta.jws.WebResult;
+import jakarta.jws.WebService;
+import org.example.dto.ProductoDTO;
+import org.example.dto.soap.ProductoSoapDTO;
 import org.example.entity.Producto;
-import org.example.repository.ProductoRepository;
+import org.example.mapper.ProductoMapper;
+import org.example.service.interfaces.ProductoService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.ws.server.endpoint.annotation.Endpoint;
-import org.springframework.ws.server.endpoint.annotation.PayloadRoot;
-import org.springframework.ws.server.endpoint.annotation.RequestPayload;
-import org.springframework.ws.server.endpoint.annotation.ResponsePayload;
+import org.springframework.stereotype.Component;
 
-@Endpoint
+@Component
+@WebService(serviceName = "ProductoService", targetNamespace = "http://example.org/soap")
 public class ProductoSoapEndpoint {
 
-    // Este URI debe coincidir exactamente con el targetNamespace de tu productos.xsd
-    private static final String NAMESPACE_URI = "http://org.example/soap";
+    @Autowired
+    private ProductoService productoService;
 
     @Autowired
-    private ProductoRepository productoRepository;
+    private ProductoMapper productoMapper;
 
-    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "getProductoRequest")
-    @ResponsePayload
-    public GetProductoResponse getProducto(@RequestPayload GetProductoRequest request) {
-        GetProductoResponse response = new GetProductoResponse();
+    // 🔍 1. CONSULTAR PRODUCTO POR ID
+    @WebMethod(operationName = "getProducto")
+    @WebResult(name = "producto", targetNamespace = "http://example.org/soap")
+    public ProductoSoapDTO getProducto(
+            @WebParam(name = "id", targetNamespace = "http://example.org/soap") Long id) {
 
-        // Buscamos el producto en la BD por el ID que viene en la petición XML
-        productoRepository.findById(request.getId()).ifPresent(producto -> {
-            response.setId(producto.getId());
-            response.setNombre(producto.getNombre());
-            response.setDescripcion(producto.getDescripcion());
+        ProductoDTO productoDtoRest = productoService.obtenerPorId(id);
 
-            // Mapeo seguro de valores numéricos
-            if (producto.getPrecio() != null) {
-                response.setPrecio(producto.getPrecio());
-            }
-            if (producto.getStock() != null) {
-                response.setStock(producto.getStock());
-            }
+        if (productoDtoRest == null) {
+            return null;
+        }
 
-            response.setImagenUrl(producto.getImagenUrl());
-        });
+        Producto productoEntity = productoMapper.toEntity(productoDtoRest);
+        return productoMapper.entityToSoapDto(productoEntity);
+    }
 
-        return response;
+    // 💾 2. GUARDAR / CREAR NUEVO PRODUCTO
+    @WebMethod(operationName = "guardarProducto")
+    @WebResult(name = "productoGuardado", targetNamespace = "http://example.org/soap")
+    public ProductoSoapDTO guardarProducto(
+            @WebParam(name = "productoInput", targetNamespace = "http://example.org/soap") ProductoSoapDTO productoInput) {
+
+        // Convertimos el DTO de SOAP que viene en el XML a la entidad intermedia
+        Producto productoEntity = productoMapper.soapDtoToEntity(productoInput);
+
+        // La pasamos al formato DTO que entiende tu capa de servicio REST
+        ProductoDTO productoDtoRest = productoMapper.toDTO(productoEntity);
+
+        // Guardamos usando la lógica de tu negocio
+        ProductoDTO productoGuardadoRest = productoService.guardar(productoDtoRest);
+
+        // Convertimos el resultado de vuelta a formato SOAP para responder el XML
+        Producto resultadoEntity = productoMapper.toEntity(productoGuardadoRest);
+        return productoMapper.entityToSoapDto(resultadoEntity);
+    }
+
+    // 🔄 3. ACTUALIZAR STOCK DE UN PRODUCTO
+    @WebMethod(operationName = "actualizarStock")
+    @WebResult(name = "actualizadoExitosamente", targetNamespace = "http://example.org/soap")
+    public boolean actualizarStock(
+            @WebParam(name = "id", targetNamespace = "http://example.org/soap") Long id,
+            @WebParam(name = "nuevoStock", targetNamespace = "http://example.org/soap") int nuevoStock) {
+
+        // Buscamos si el producto gamer existe en la base de datos
+        ProductoDTO productoDtoRest = productoService.obtenerPorId(id);
+
+        if (productoDtoRest != null) {
+            // Modificamos solo la cantidad de stock
+            productoDtoRest.setStock(nuevoStock);
+
+            // Reutilizamos el método guardar para hacer el UPDATE en PostgreSQL
+            productoService.guardar(productoDtoRest);
+            return true;
+        }
+
+        return false; // Retorna false si el producto no existía
     }
 }
