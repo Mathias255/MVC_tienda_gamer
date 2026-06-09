@@ -2,6 +2,8 @@ package org.example.controller;
 
 import org.example.dto.UsuarioRegistroDTO;
 import org.example.dto.UsuarioRespuestaDTO;
+import org.example.dto.LoginRequest;
+import org.example.dto.LoginResponse; // 🔥 Importamos tu LoginResponse real
 import org.example.entity.Usuario;
 import org.example.service.interfaces.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,10 +14,20 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/usuarios")
+@CrossOrigin(origins = "*")
 public class UsuarioController {
 
     @Autowired
     private UsuarioService usuarioService;
+
+    // 🔥 ENDPOINT DE LOGIN CORREGIDO CON TUS DTOs Y ROL REAL
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody LoginRequest loginDto) {
+        // Ejecutamos la autenticación pasándole el email y password
+        LoginResponse response = usuarioService.autenticar(loginDto.getEmail(), loginDto.getPassword());
+
+        return ResponseEntity.ok(response);
+    }
 
     @PostMapping
     public ResponseEntity<UsuarioRespuestaDTO> crearUsuario(@RequestBody UsuarioRegistroDTO dto) {
@@ -35,12 +47,9 @@ public class UsuarioController {
     @GetMapping
     public ResponseEntity<List<UsuarioRespuestaDTO>> listarTodos() {
         List<Usuario> usuarios = usuarioService.listarTodos();
-
-        // Convertimos la lista de entidades a lista de DTOs
         List<UsuarioRespuestaDTO> respuesta = usuarios.stream()
                 .map(this::mappearADto)
-                .toList(); // Si usas Java 16 o superior. Si usas Java 11 cambia a .collect(Collectors.toList())
-
+                .toList();
         return ResponseEntity.ok(respuesta);
     }
 
@@ -59,7 +68,6 @@ public class UsuarioController {
         return ResponseEntity.noContent().build();
     }
 
-    // Método auxiliar de mapeo
     private UsuarioRespuestaDTO mappearADto(Usuario usuario) {
         if (usuario == null) return null;
         UsuarioRespuestaDTO dto = new UsuarioRespuestaDTO();

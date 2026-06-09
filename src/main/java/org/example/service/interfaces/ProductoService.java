@@ -22,4 +22,6 @@ public interface ProductoService extends BaseProductos {
     ProductoDTO actualizar(Long id, ProductoDTO productoDto);
 
     void eliminar(Long id);
+
+    List<ProductoDTO> obtenerPorCategoria(Long categoriaId);
 }

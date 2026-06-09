@@ -13,7 +13,10 @@ import org.mapstruct.ReportingPolicy;
 public interface ProductoMapper {
 
     // --- MAPEO PARA REST (ProductoDTO) ---
+    @Mapping(source = "categoria.id", target = "categoriaId")
     ProductoDTO toDTO(Producto producto);
+
+    @Mapping(source = "categoriaId", target = "categoria.id")
     Producto toEntity(ProductoDTO dto);
 
     // --- MAPEO PARA SOAP (ProductoSoapDTO) ---

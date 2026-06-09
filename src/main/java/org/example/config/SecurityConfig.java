@@ -29,7 +29,7 @@ public class SecurityConfig {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
-    // 🚀 BEAN 1: Expone el AuthenticationManager para el AuthController
+    // 🚀 BEAN 1: Expone el AuthenticationManager para el AuthController / UsuarioController
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
@@ -61,7 +61,10 @@ public class SecurityConfig {
                         // Permitir todas las peticiones de verificación previas (Preflight OPTIONS)
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // Puertas abiertas para el controlador de Login / Auth / JWT
+                        // 🔥 PUERTA ABIERTA EXPLÍCITA: Permite el ingreso libre al endpoint de Login que creamos
+                        .requestMatchers("/api/usuarios/login").permitAll()
+
+                        // Puertas abiertas para el controlador alternativo de Login / Auth / JWT
                         .requestMatchers("/api/auth/**").permitAll()
 
                         // Puertas abiertas para el registro y el CRUD de usuarios
@@ -71,6 +74,7 @@ public class SecurityConfig {
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("/api/productos/**").permitAll()
                         .requestMatchers("/api/categorias/**").permitAll()
+                        .requestMatchers("/api/compras", "/api/compras/**").permitAll()
 
                         // Cualquier otra petición requiere token/estar logueado
                         .anyRequest().authenticated()
