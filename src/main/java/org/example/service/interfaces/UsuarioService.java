@@ -1,20 +1,17 @@
 package org.example.service.interfaces;
 
-import org.example.dto.UsuarioRegistroDTO;
-import org.example.dto.UsuarioRespuestaDTO;
-import org.example.dto.LoginResponse; // 🔥 Importante
 import org.example.entity.Usuario;
+import org.example.dto.UsuarioRegistroDTO;
+import org.example.dto.LoginResponse;
+
 import java.util.List;
+import java.util.Optional;
 
 public interface UsuarioService {
-
-    Usuario registrarUsuario(UsuarioRegistroDTO dto);
-    Usuario obtenerPorId(Long id);
-    Usuario obtenerPorEmail(String email);
     List<Usuario> listarTodos();
-    Usuario actualizar(Long id, UsuarioRegistroDTO dto);
+    Optional<Usuario> obtenerPorId(Long id);
+    Usuario registrarUsuario(UsuarioRegistroDTO usuarioDTO);
+    Usuario actualizar(Long id, UsuarioRegistroDTO usuarioDTO);
     void eliminar(Long id);
-
-    // 🔥 Cambiado de String a LoginResponse
     LoginResponse autenticar(String email, String password);
 }

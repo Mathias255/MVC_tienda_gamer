@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/productos")
@@ -18,34 +19,86 @@ public class ProductoController {
     private ProductoService productoService;
 
     @GetMapping
-    public ResponseEntity<List<ProductoDTO>> obtenerTodos() {
-        return ResponseEntity.ok(productoService.obtenerTodos());
+    public ResponseEntity<?> obtenerTodos() {
+        try {
+            return ResponseEntity.ok(productoService.obtenerTodos());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Error al obtener productos: " + e.getMessage()));
+        }
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ProductoDTO> obtenerPorId(@PathVariable Long id) {
-        ProductoDTO producto = productoService.obtenerPorId(id);
-        return producto != null ? ResponseEntity.ok(producto) : ResponseEntity.notFound().build();
+    public ResponseEntity<?> obtenerPorId(@PathVariable Long id) {
+        try {
+            ProductoDTO producto = productoService.obtenerPorId(id);
+            return producto != null ? ResponseEntity.ok(producto) : ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Error al buscar producto: " + e.getMessage()));
+        }
     }
 
+    // ➕ CREAR PRODUCTO BLINDADO
     @PostMapping
-    public ResponseEntity<ProductoDTO> crear(@RequestBody ProductoDTO productoDTO) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(productoService.guardar(productoDTO));
+    public ResponseEntity<?> crear(@RequestBody ProductoDTO productoDTO) {
+        try {
+            System.out.println("[DEBUG POST] Intentando crear producto: " + productoDTO.getNombre());
+
+            // Validación básica preventiva
+            if (productoDTO.getNombre() == null || productoDTO.getNombre().isBlank()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "El nombre del producto es obligatorio"));
+            }
+
+            ProductoDTO nuevoProducto = productoService.guardar(productoDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body(nuevoProducto);
+        } catch (Exception e) {
+            System.err.println("[ERROR POST] No se pudo crear el producto. Motivo: " + e.getMessage());
+            e.printStackTrace(); // Esto imprime el error exacto en la consola de IntelliJ
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Error interno al crear: " + e.getMessage()));
+        }
     }
 
+    // 🔄 ACTUALIZAR PRODUCTO (PUT) BLINDADO
     @PutMapping("/{id}")
-    public ResponseEntity<ProductoDTO> actualizar(@PathVariable Long id, @RequestBody ProductoDTO productoDTO) {
-        return ResponseEntity.ok(productoService.actualizar(id, productoDTO));
+    public ResponseEntity<?> actualizar(@PathVariable Long id, @RequestBody ProductoDTO productoDTO) {
+        try {
+            System.out.println("[DEBUG PUT] Intentando modificar producto ID: " + id);
+
+            ProductoDTO actualizado = productoService.actualizar(id, productoDTO);
+            return ResponseEntity.ok(actualizado);
+        } catch (Exception e) {
+            System.err.println("[ERROR PUT] No se pudo actualizar el producto ID " + id + ". Motivo: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Error interno al actualizar: " + e.getMessage()));
+        }
     }
 
+    // ❌ ELIMINAR PRODUCTO (DELETE) BLINDADO
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
-        productoService.eliminar(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<?> eliminar(@PathVariable Long id) {
+        try {
+            System.out.println("[DEBUG DELETE] Intentando eliminar producto ID: " + id);
+
+            productoService.eliminar(id);
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            System.err.println("[ERROR DELETE] No se pudo eliminar el producto ID " + id + ". Motivo: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Error al eliminar: El producto podría estar asociado a un carrito o compra activa."));
+        }
     }
 
     @GetMapping("/categoria/{categoriaId}")
-    public ResponseEntity<List<ProductoDTO>> obtenerPorCategoria(@PathVariable Long categoriaId) {
-        return ResponseEntity.ok(productoService.obtenerPorCategoria(categoriaId));
+    public ResponseEntity<?> obtenerPorCategoria(@PathVariable Long categoriaId) {
+        try {
+            return ResponseEntity.ok(productoService.obtenerPorCategoria(categoriaId));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Error al filtrar por categoría: " + e.getMessage()));
+        }
     }
 }

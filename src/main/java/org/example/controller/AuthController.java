@@ -1,38 +1,47 @@
 package org.example.controller;
 
+import org.example.dto.LoginRequest; // Cambia a tu DTO de login si aplica, o usa un Map
+import org.example.dto.LoginResponse;
 import org.example.dto.UsuarioRegistroDTO;
-import org.example.dto.UsuarioRespuestaDTO;
 import org.example.entity.Usuario;
 import org.example.service.interfaces.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/auth")
+@CrossOrigin(origins = "http://localhost:4200")
 public class AuthController {
 
     @Autowired
     private UsuarioService usuarioService;
 
-    @PostMapping("/registrar")
-    public ResponseEntity<UsuarioRespuestaDTO> registrar(@RequestBody UsuarioRegistroDTO dto) {
-        // Guardamos usando el servicio en español
-        Usuario usuarioGuardado = usuarioService.registrarUsuario(dto);
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody Map<String, String> credentials) {
+        try {
+            String email = credentials.get("email");
+            String password = credentials.get("password");
 
-        // Convertimos la Entidad a DTO de respuesta para solucionar el tipo incompatible
-        UsuarioRespuestaDTO respuesta = mappearADto(usuarioGuardado);
-
-        return ResponseEntity.ok(respuesta);
+            LoginResponse response = usuarioService.autenticar(email, password);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", e.getMessage()));
+        }
     }
 
-    // Método auxiliar para no repetir código de mapeo
-    private UsuarioRespuestaDTO mappearADto(Usuario usuario) {
-        if (usuario == null) return null;
-        UsuarioRespuestaDTO dto = new UsuarioRespuestaDTO();
-        dto.setId(usuario.getId());
-        dto.setNombre(usuario.getNombre());
-        dto.setEmail(usuario.getEmail());
-        return dto;
+    @PostMapping("/register")
+    public ResponseEntity<?> registrar(@RequestBody UsuarioRegistroDTO usuarioDTO) {
+        try {
+            Usuario nuevoUsuario = usuarioService.registrarUsuario(usuarioDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body(nuevoUsuario);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "Error en el registro: " + e.getMessage()));
+        }
     }
 }
