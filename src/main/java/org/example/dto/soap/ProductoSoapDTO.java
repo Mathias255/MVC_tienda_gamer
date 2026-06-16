@@ -13,7 +13,8 @@ import jakarta.xml.bind.annotation.XmlType;
         "descripcion",
         "precio",
         "stock",
-        "categoriaId"
+        "categoriaId",
+        "proveedorId"
 })
 @XmlRootElement(name = "ProductoSoapDTO")
 public class ProductoSoapDTO {
@@ -27,6 +28,8 @@ public class ProductoSoapDTO {
     protected int stock;
     @XmlElement(required = true, nillable = true)
     protected Long categoriaId;
+    @XmlElement(required = true, nillable = true)
+    protected Long proveedorId;
 
     // Getters y Setters
     public Long getId() { return id; }
@@ -46,4 +49,7 @@ public class ProductoSoapDTO {
 
     public Long getCategoriaId() { return categoriaId; }
     public void setCategoriaId(Long value) { this.categoriaId = value; }
+
+    public Long getProveedorId() { return proveedorId; }
+    public void setProveedorId(Long value) { this.proveedorId = value; }
 }

@@ -6,6 +6,7 @@ import org.example.entity.Producto;
 import org.example.mapper.ProductoMapper;
 import org.example.repository.CategoriaRepository;
 import org.example.repository.ProductoRepository;
+import org.example.repository.ProveedorRepository;
 import org.example.service.interfaces.ProductoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,6 +34,9 @@ public class ProductoServiceImpl implements ProductoService {
 
     @Autowired
     private CategoriaRepository categoriaRepository;
+
+    @Autowired
+    private ProveedorRepository proveedorRepository;
 
     /**
      * {@inheritDoc}
@@ -90,6 +94,11 @@ public class ProductoServiceImpl implements ProductoService {
                     .orElseThrow(() -> new RuntimeException("Categoría no encontrada con id: " + productoDto.getCategoriaId()));
             producto.setCategoria(categoria);
         }
+        // 🔥 Cargamos el proveedor
+        if (productoDto.getProveedorId() != null) {
+            producto.setProveedor(proveedorRepository.findById(productoDto.getProveedorId())
+                    .orElseThrow(() -> new RuntimeException("Proveedor no encontrado con id: " + productoDto.getProveedorId())));
+        }
         Producto guardado = productoRepository.save(producto);
         return productoMapper.toDTO(guardado);
     }
@@ -123,6 +132,14 @@ public class ProductoServiceImpl implements ProductoService {
             Categoria categoria = categoriaRepository.findById(productoDto.getCategoriaId())
                     .orElseThrow(() -> new RuntimeException("Categoría no encontrada con id: " + productoDto.getCategoriaId()));
             productoExistente.setCategoria(categoria);
+        }
+
+        // 🔥 Actualizar proveedor
+        if (productoDto.getProveedorId() != null) {
+            productoExistente.setProveedor(proveedorRepository.findById(productoDto.getProveedorId())
+                    .orElseThrow(() -> new RuntimeException("Proveedor no encontrado con id: " + productoDto.getProveedorId())));
+        } else {
+            productoExistente.setProveedor(null);
         }
 
         Producto actualizado = productoRepository.save(productoExistente);

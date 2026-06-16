@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-@WebService(serviceName = "ProductoService", targetNamespace = "http://example.org/soap")
+@WebService(serviceName = "ProductoService", targetNamespace = "http://org.example/soap")
 public class ProductoSoapEndpoint {
 
     @Autowired
@@ -24,9 +24,9 @@ public class ProductoSoapEndpoint {
 
     // 🔍 1. CONSULTAR PRODUCTO POR ID
     @WebMethod(operationName = "getProducto")
-    @WebResult(name = "producto", targetNamespace = "http://example.org/soap")
+    @WebResult(name = "producto", targetNamespace = "http://org.example/soap")
     public ProductoSoapDTO getProducto(
-            @WebParam(name = "id", targetNamespace = "http://example.org/soap") Long id) {
+            @WebParam(name = "id", targetNamespace = "http://org.example/soap") Long id) {
 
         ProductoDTO productoDtoRest = productoService.obtenerPorId(id);
 
@@ -40,9 +40,9 @@ public class ProductoSoapEndpoint {
 
     // 💾 2. GUARDAR / CREAR NUEVO PRODUCTO
     @WebMethod(operationName = "guardarProducto")
-    @WebResult(name = "productoGuardado", targetNamespace = "http://example.org/soap")
+    @WebResult(name = "productoGuardado", targetNamespace = "http://org.example/soap")
     public ProductoSoapDTO guardarProducto(
-            @WebParam(name = "productoInput", targetNamespace = "http://example.org/soap") ProductoSoapDTO productoInput) {
+            @WebParam(name = "productoInput", targetNamespace = "http://org.example/soap") ProductoSoapDTO productoInput) {
 
         // Convertimos el DTO de SOAP que viene en el XML a la entidad intermedia
         Producto productoEntity = productoMapper.soapDtoToEntity(productoInput);
@@ -60,10 +60,10 @@ public class ProductoSoapEndpoint {
 
     // 🔄 3. ACTUALIZAR STOCK DE UN PRODUCTO
     @WebMethod(operationName = "actualizarStock")
-    @WebResult(name = "actualizadoExitosamente", targetNamespace = "http://example.org/soap")
+    @WebResult(name = "actualizadoExitosamente", targetNamespace = "http://org.example/soap")
     public boolean actualizarStock(
-            @WebParam(name = "id", targetNamespace = "http://example.org/soap") Long id,
-            @WebParam(name = "nuevoStock", targetNamespace = "http://example.org/soap") int nuevoStock) {
+            @WebParam(name = "id", targetNamespace = "http://org.example/soap") Long id,
+            @WebParam(name = "nuevoStock", targetNamespace = "http://org.example/soap") int nuevoStock) {
 
         // Buscamos si el producto gamer existe en la base de datos
         ProductoDTO productoDtoRest = productoService.obtenerPorId(id);

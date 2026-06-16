@@ -10,6 +10,7 @@ public class ProductoDTO {
     private Integer stock;
     private String imagenUrl;
     private Long categoriaId;
+    private Long proveedorId;
 
     // Getters y Setters
     public Long getId() { return id; }
@@ -32,4 +33,7 @@ public class ProductoDTO {
 
     public Long getCategoriaId() { return categoriaId; }
     public void setCategoriaId(Long categoriaId) { this.categoriaId = categoriaId; }
+
+    public Long getProveedorId() { return proveedorId; }
+    public void setProveedorId(Long proveedorId) { this.proveedorId = proveedorId; }
 }

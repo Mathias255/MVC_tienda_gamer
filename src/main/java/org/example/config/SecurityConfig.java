@@ -45,6 +45,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/usuarios/**").permitAll()
                         .requestMatchers("/api/productos/**").permitAll()
                         .requestMatchers("/api/categorias/**").permitAll()
+                        .requestMatchers("/api/proveedores/**").permitAll()
+                        .requestMatchers("/api/metodos-pago/**").permitAll()
+                        .requestMatchers("/api/resenas/**").permitAll()
                         .requestMatchers("/api/compras/**").permitAll()
                         .requestMatchers("/api/auditoria/**").permitAll()
 
