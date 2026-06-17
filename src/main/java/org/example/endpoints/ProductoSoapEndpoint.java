@@ -79,4 +79,23 @@ public class ProductoSoapEndpoint {
 
         return false; // Retorna false si el producto no existía
     }
+
+    // ❌ 4. ELIMINAR UN PRODUCTO POR ID (Agregado)
+    @WebMethod(operationName = "eliminarProducto")
+    @WebResult(name = "eliminadoExitosamente", targetNamespace = "http://org.example/soap")
+    public boolean eliminarProducto(
+            @WebParam(name = "id", targetNamespace = "http://org.example/soap") Long id) {
+        try {
+            // Buscamos si existe antes de intentar removerlo
+            ProductoDTO productoDtoRest = productoService.obtenerPorId(id);
+            if (productoDtoRest != null) {
+                productoService.eliminar(id);
+                return true;
+            }
+            return false;
+        } catch (Exception e) {
+            // Retorna false si ocurre un fallo (ej. la restricción por clave foránea que vimos)
+            return false;
+        }
+    }
 }

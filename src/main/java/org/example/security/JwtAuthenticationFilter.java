@@ -4,6 +4,8 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.example.entity.AuditoriaAcceso;
+import org.example.repository.AuditoriaAccesoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -14,6 +16,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.Collections;
 
 @Component
@@ -21,6 +24,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Autowired
     private JwtService jwtService;
+
+    @Autowired
+    private AuditoriaAccesoRepository auditoriaAccesoRepository;
 
     @Override
     protected void doFilterInternal(
@@ -60,11 +66,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
+
+                    // 💾 REGISTRAR ACCESO EN LA AUDITORÍA (Mismo estilo que usa tu JAAS)
+                    try {
+                        // Construimos un único texto informativo con el método HTTP y el Endpoint de la API consumida
+                        String eventoDetalle = "API_ACCESO [" + request.getMethod() + "] " + request.getRequestURI();
+
+                        // Usamos el constructor de 3 parámetros (String, String, LocalDateTime)
+                        AuditoriaAcceso auditoria = new AuditoriaAcceso(userEmail, eventoDetalle, LocalDateTime.now());
+
+                        auditoriaAccesoRepository.save(auditoria);
+                    } catch (Exception audEx) {
+                        System.err.println("[Auditoría JWT] No se pudo guardar el registro: " + audEx.getMessage());
+                    }
                 }
             }
         } catch (Exception e) {
-            // Entorno de desarrollo: si el token es simulado o inválido,
-            // evitamos el clásico Error 500 y permitimos que llegue al controlador.
             System.out.println("[JWT Filter] Token de desarrollo o inválido ignorado: " + e.getMessage());
         }
 

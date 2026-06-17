@@ -1,5 +1,7 @@
 package org.example.service.implementation;
 
+import org.example.security.JwtService;
+
 import org.example.entity.Usuario;
 import org.example.dto.UsuarioRegistroDTO;
 import org.example.dto.LoginResponse;
@@ -21,6 +23,9 @@ public class UsuarioServiceImpl implements UsuarioService {
     // Usamos el BCryptPasswordEncoder oficial que ya está definido en tu SecurityConfig
     @Autowired
     private BCryptPasswordEncoder bcryptEncoder;
+
+    @Autowired
+    private JwtService jwtService;
 
     @Override
     public List<Usuario> listarTodos() {
@@ -110,10 +115,11 @@ public class UsuarioServiceImpl implements UsuarioService {
             }
         }
 
-        String tokenSimulado = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.tienda-gamer-token-" + usuario.getId();
+        // Generamos un JWT válido usando JwtService
+        String token = jwtService.generateToken(usuario.getEmail());
 
         return new LoginResponse(
-                tokenSimulado,
+                token,
                 usuario.getId(),
                 usuario.getNombre(),
                 usuario.getEmail(),
